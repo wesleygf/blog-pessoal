@@ -2,21 +2,26 @@ import { Body, HttpCode, HttpException, HttpStatus, Injectable, Post } from "@ne
 import { InjectRepository } from "@nestjs/typeorm";
 import { Postagem } from "../entities/postagem.entity";
 import { DeleteResult, ILike, Repository } from "typeorm";
+import { TemaService } from "../../tema/services/tema.service";
 
 @Injectable()
 export class PostagemService{
 
     constructor(
         @InjectRepository(Postagem)
-        private postagemRepository: Repository<Postagem>){}
+        private postagemRepository: Repository<Postagem>,
+        private temaService: TemaService){}
 
     async findAll(): Promise<Postagem[]> {
-        return await this.postagemRepository.find()
+        return await this.postagemRepository.find({
+            relations: {tema:true}
+        })
     }
 
     async findById (id:number): Promise<Postagem> {
         const postagem = await this.postagemRepository.findOne({ 
-            where: { id }
+            where: { id },
+            relations: {tema:true}
         })
 
         if(!postagem){
@@ -30,13 +35,23 @@ export class PostagemService{
         return await this.postagemRepository.find({
             where:{ 
                 titulo: ILike(`%${titulo}%`) 
-            }
+            },
+            relations: {tema:true}
         })
     }
 
     
     async create(postagem: Postagem): Promise<Postagem>{
-        //const novaPostagem = this.postagemRepository.create(postagem); nao e necessario o salve ja funciona 
+        
+
+        if(postagem.tema){
+
+            let tema = await this.temaService.findById(postagem.tema.id);
+
+            if(!tema){
+                throw new HttpException('Tema nao encontrado!', HttpStatus.NOT_FOUND);
+            }
+        }
         return await this.postagemRepository.save(postagem);
     }
 
@@ -47,6 +62,16 @@ export class PostagemService{
         if(!buscaPostagem || !postagem.id)
             throw new HttpException('Postagem nao encontrada', HttpStatus.NOT_FOUND);
 
+        if(postagem.tema){
+
+            let tema = await this.temaService.findById(postagem.tema.id);
+
+            if(!tema){
+                throw new HttpException('Tema nao encontrado!', HttpStatus.NOT_FOUND);
+            }
+
+            return await this.postagemRepository.save(postagem);
+        }
         return await this.postagemRepository.save(postagem);
     }
 
