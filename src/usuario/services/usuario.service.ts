@@ -55,12 +55,12 @@ export class UsuarioService{
 
     async update(usuario: Usuario): Promise<Usuario>{
 
-        let updateUsuario: Usuario = await this.findById(usuario.id);
+        //let updateUsuario: Usuario = await this.findById(usuario.id);
         let buscaUsuario = await this.findByUsuario(usuario.usuario);
 
-        if(!updateUsuario){
+        /*if(!updateUsuario){
             throw new HttpException('Usuario nao encontrado', HttpStatus.NOT_FOUND);
-        }
+        }*/
         if(buscaUsuario && buscaUsuario.id !== usuario.id){
             throw new HttpException('O usuario (e-mail) ja esta sendo utilizado', HttpStatus.BAD_REQUEST);
         }

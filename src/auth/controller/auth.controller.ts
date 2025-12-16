@@ -14,5 +14,6 @@ export class AuthController{
     @Post('/logar')
     login(@Body() usuarioLogin: UsuarioLogin): Promise<any>{
         return this.authService.login(usuarioLogin);
+        
     }
 }
